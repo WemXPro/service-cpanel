@@ -159,15 +159,15 @@ class Service implements ServiceInterface
             'plan' => $package->data('package', 'default'),
         ];
 
-        // make api call to create cpanel account
-        $response = Service::api('/createacct', $data);
-
+        // store external user
         $order->createExternalUser([
-            'external_id' => 1, // optional
             'username' => $data['username'],
             'password' => $data['password'],
             'data' => [], // Additional data about the user as an array (optional)
-         ]);
+        ]);
+
+        // make api call to create cpanel account
+        $response = Service::api('/createacct', $data);
     }
 
     public static function api($endpoint, $data = [], $method = 'GET')
@@ -189,7 +189,9 @@ class Service implements ServiceInterface
                 throw new \Exception("403 Forbidden | Invalid API Token or User. <br> <br> Ensure the API token is correct and not expired and the user has the required permissions");
             }
 
-            dd($response, $response->json(), $response->status());
+            // dd($response, $response->json(), $response->status());
+
+            throw new \Exception('something went wrong | Ensure the CPanel URL and API Token are correct');
         }
 
         return $response;
@@ -205,7 +207,40 @@ class Service implements ServiceInterface
     */
     public function upgrade(Package $oldPackage, Package $newPackage)
     {
-        return [];
+        $username = $this->order->getExternalUser()->username;
+        $plan = $newPackage->data('package', 'default');
+
+        Service::api('/changepackage', ['user' => $username, 'pkg' => $plan]);
+    }
+
+    /**
+     * Change the CPanel password
+     * 
+    */
+    public function changePassword(Order $order, string $newPassword)
+    {
+        // check if password is minimum 8 characters and contains at least one number
+        if(strlen($newPassword) < 8 || !preg_match('/[0-9]/', $newPassword)) {
+            return redirect()->back()->withError("Password must be at least 8 characters and contain at least one number");
+        }
+
+        try {
+            $username = $order->getExternalUser()->username;
+            Service::api('/passwd', ['user' => $username, 'password' => $newPassword]);
+
+        } catch(\Exception $error) {
+            return redirect()->back()->withError("Something went wrong, please try again.");
+        }
+
+        return redirect()->back()->withSuccess("Password has been changed");
+    }
+
+    public function loginToPanel()
+    {
+        $username = $this->order->getExternalUser()->username;
+        $password = $this->order->getExternalUser()->password;
+
+        return redirect(settings('cpanel::hostname') . '/login/?user=' . $username . '&pass=' . $password);
     }
 
     /**
@@ -217,7 +252,8 @@ class Service implements ServiceInterface
     */
     public function suspend(array $data = [])
     {
-        return [];
+        $username = $this->order->getExternalUser()->username;
+        Service::api('/suspendacct', ['user' => $username]);
     }
 
     /**
@@ -229,7 +265,8 @@ class Service implements ServiceInterface
     */
     public function unsuspend(array $data = [])
     {
-        return [];
+        $username = $this->order->getExternalUser()->username;
+        Service::api('/unsuspendacct', ['user' => $username]);
     }
 
     /**
@@ -240,7 +277,8 @@ class Service implements ServiceInterface
     */
     public function terminate(array $data = [])
     {
-        return [];
+        $username = $this->order->getExternalUser()->username;
+        Service::api('/removeacct', ['user' => $username]);
     }
 
 }
