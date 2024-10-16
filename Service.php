@@ -32,7 +32,7 @@ class Service implements ServiceInterface
     {
         return (object)
         [
-          'display_name' => 'CPanel',
+          'display_name' => 'cPanel',
           'author' => 'WemX',
           'version' => '1.0.0',
           'wemx_version' => ['dev', '>=1.8.0'],
@@ -53,22 +53,22 @@ class Service implements ServiceInterface
             [
                 "col" => "col-12",
                 "key" => "cpanel::hostname",
-                "name" => "CPanel Hostname",
-                "description" => "Enter your CPanel hostname",
+                "name" => "cPanel Hostname",
+                "description" => "Enter your cPanel hostname",
                 "type" => "url",
                 "rules" => ['required', 'active_url'], // laravel validation rules
             ],
             [
                 "key" => "cpanel::api_user",
-                "name" => "CPanel API User",
-                "description" => "Enter your CPanel API User",
+                "name" => "cPanel API User",
+                "description" => "Enter your cPanel API User",
                 "type" => "text",
                 "rules" => ['required'], // laravel validation rules
             ],
             [
                 "key" => "encrypted::cpanel::api_token",
-                "name" => "CPanel Api Token",
-                "description" => "Enter your CPanel API Token",
+                "name" => "cPanel Api Token",
+                "description" => "Enter your cPanel API Token",
                 "type" => "password",
                 "rules" => ['required'], // laravel validation rules
             ],
@@ -95,8 +95,8 @@ class Service implements ServiceInterface
             [
                 "col" => "col-12",
                 "key" => "package",
-                "name" => "CPanel Package",
-                "description" => "Select the CPanel Package that belongs to this Package",
+                "name" => "cPanel Package",
+                "description" => "Select the cPanel Package that belongs to this Package",
                 "type" => "select",
                 "options" => $packages,
                 "rules" => ['required'], // laravel validation rules
@@ -136,7 +136,7 @@ class Service implements ServiceInterface
             return redirect()->back()->with('error', $e->getMessage());
         }
 
-        return redirect()->back()->with('success', 'Successfully connected to CPanel');
+        return redirect()->back()->with('success', 'Successfully connected to cPanel');
     }
 
     /**
@@ -166,6 +166,15 @@ class Service implements ServiceInterface
             'data' => [], // Additional data about the user as an array (optional)
         ]);
 
+        $user->email([
+            'subject' => 'Your cPanel Account has been created',
+            'content' => 'Your cPanel account has been created. <br> <br> Username: ' . $data['username'] . '<br> Password: ' . $data['password'],
+            'button' => [
+                'name' => 'Login to cPanel',
+                'url' => settings('cpanel::hostname'),
+            ]
+        ]);
+
         // make api call to create cpanel account
         $response = Service::api('/createacct', $data);
     }
@@ -191,7 +200,7 @@ class Service implements ServiceInterface
 
             // dd($response, $response->json(), $response->status());
 
-            throw new \Exception('something went wrong | Ensure the CPanel URL and API Token are correct');
+            throw new \Exception('something went wrong | Ensure the cPanel URL and API Token are correct');
         }
 
         return $response;
@@ -214,7 +223,7 @@ class Service implements ServiceInterface
     }
 
     /**
-     * Change the CPanel password
+     * Change the cPanel password
      * 
     */
     public function changePassword(Order $order, string $newPassword)
