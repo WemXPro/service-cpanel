@@ -1,0 +1,11 @@
+{
+    "name": "Cpanel",
+    "alias": "cpanel",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "App\\Services\\Cpanel\\Providers\\CpanelServiceProvider"
+    ],
+    "files": []
+}
